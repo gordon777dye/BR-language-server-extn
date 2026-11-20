@@ -1,0 +1,2 @@
+# Each version's .vsix is attached to its GitHub release, not committed.
+*.vsix
