@@ -25,6 +25,8 @@ and Lexi.
 - [Navigating](#navigating)
 - [Line numbers](#line-numbers)
 - [Lexi](#lexi)
+  - [The original Lexi](#the-original-lexi)
+  - [Customizing Lexi: the dialect file](#customizing-lexi)
 - [Running BR from the editor](#running-br-from-the-editor)
 - [FileIO layouts](#fileio-layouts)
 - [Commands and keys](#commands-and-keys)
@@ -38,7 +40,7 @@ and Lexi.
 ## Installing
 
 1. Open the [newest release](https://github.com/gordon777dye/BR-vscode-extn-2/releases/latest)
-   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.0.vsix`).
+   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.1.vsix`).
 2. Install it in either of these ways:
    - **From a terminal:** `code --install-extension brls-<version>.vsix`
    - **In VS Code:** open the Extensions view, then **…** (Views and More Actions) →
@@ -308,6 +310,55 @@ installed. Each time the brls extension starts, it looks there. When it finds th
 
 **BR: Show Output** says which Lexi is in use.
 
+<a id="customizing-lexi"></a>
+### Customizing Lexi: the dialect file
+
+Every word Lexi recognises and everything it writes is spelled in one JSON file, the **dialect
+file**, `lexi.json`: the `#DEFINE#`, `#SELECT#` and `#AUTONUMBER#` directives, the `&=` append, the
+`!_` join, the continuation operators, the backtick string, the block comment, the label form, and
+the BR written for each. A project can have its own, so that a team writes Lexi in its own house
+spelling.
+
+**Creating one.** Run **BR: Create lexi.json (Lexi dialect) in the Workspace**. It copies the
+dialect built into brls into the workspace folder and opens it. An existing `lexi.json` is opened,
+never overwritten.
+
+**Where brls looks**, in this order:
+1. the file the `br.lexi.dialect` setting names, relative to the workspace folder;
+2. `lexi.json` in the workspace folder (the first folder, in a multi-folder workspace);
+3. the dialect built into brls.
+
+**What it changes.** Saving the file changes Lexi at once, without a restart. The open Lexi files are
+expanded and checked again, and Show Lexi Expansion and Compile with BR use it. The dialect also
+decides:
+- which files count as Lexi, so a renamed `#SELECT#` marks a file as Lexi and the shipped word no
+  longer does;
+- the numbers **Add Line Numbers** writes and **Strip Line Numbers** removes;
+- the words the Lexi snippets insert.
+
+**The file holds only what you change.** brls reads it on top of the built-in dialect, so a key left
+out keeps its built-in value. This is a complete dialect file that makes `<<=` the append operator:
+
+```json
+{ "concat": { "find": "<<=" } }
+```
+
+**Mistakes are shown on the file.** A file brls can't use is marked with an error at the key, rule
+or character it's about, and brls uses its built-in dialect until you fix it. A misspelled key is one
+of those errors, rather than being silently ignored.
+
+Things to know:
+- **Keep `lexi.json` in version control with your programs.** Compile with BR compiles the
+  expansion, so the same source compiles differently under a different dialect file.
+- **Choose distinctive words.** A directive that ordinary BR also contains would make ordinary BR
+  files count as Lexi.
+- **Not with the original Lexi.** With the original Lexi in use, `lexi.json` isn't read; brls says
+  so in its output. For the original's expansion from brls's own Lexi instead, a dialect file can
+  set `"legacy": true`, `"recordLength": 800` and `"define": {"firstOnly": true}`.
+- **Test what you change.** The built-in dialect is held to the original Lexi by brls's tests; a
+  dialect of your own isn't. Keep a few files that use each construct you changed, and check their
+  expansion after each edit.
+
 ---
 
 ## Running BR from the editor
@@ -393,6 +444,7 @@ before any BR file is opened.
 | BR: Run with BR | Ctrl+Shift+R |
 | BR: Search Compiled Programs (LIST) | Ctrl+Alt+F (anywhere) |
 | BR: Show Lexi Expansion | — |
+| BR: Create lexi.json (Lexi dialect) in the Workspace | — |
 | BR: Toggle Compile on Save | — |
 | BR: View Compiled Program | — (Explorer context menu) |
 | BR: Decompile to Source | — (Explorer context menu) |
@@ -421,6 +473,7 @@ Every setting is in the `br` section of your settings; search for `br.` in the S
 | `br.autoLineNumbers.zeroPadding` | `5` | The number's width where the line above gives none, 1 to 5 |
 | `br.snippets.fileio` | `false` | Offer the FileIO snippets |
 | `br.lexi.lineMarkers` | `true` | Put BR's line-count markers in Show Lexi Expansion |
+| `br.lexi.dialect` | none | The project's Lexi dialect file, relative to the workspace folder. Empty means `lexi.json` in the workspace folder if there is one (see [Customizing Lexi](#customizing-lexi)) |
 | `br.run.executable` | `$BR_EXE`, then the kit's | The BR that the run commands start |
 | `br.run.unattendedConfig` | `$BR_AI_UTIL`, then the kit's | The configuration BR runs unattended on |
 | `br.run.interactiveConfig` | `$BR_AI_USER`, then the kit's | The configuration Run starts the program on |
@@ -473,6 +526,7 @@ in that channel.
 | Compile or Run says "no BR executable" or a configuration doesn't exist | Set `br.run.executable`, `br.run.unattendedConfig` and `br.run.interactiveConfig`, or their environment variables. |
 | Decompile refuses | Set `br.run.allowDecompile`. |
 | "No such library program" never appears | It's only reported when `br.closedWorkspace` is on. |
+| Lexi files suddenly full of errors after editing `lexi.json` | The dialect file was refused, and brls fell back to its built-in dialect. The error on `lexi.json` says why. |
 | Show Lexi Expansion says the original Lexi can't run | The `crs-dev.vslang-br` extension's `Lexi` folder is incomplete, or you're not on Windows. Uninstall that extension to use brls's own Lexi. |
 | Something else | Open **BR: Show Language Server Output**, and set `br.trace.server` to `verbose` to capture the exchange. Report it at [the repository's issues](https://github.com/gordon777dye/BR-vscode-extn-2/issues), with that output. |
 

@@ -1,6 +1,6 @@
 # brls settings
 
-<!-- The settings of brls 0.1.0, as the brls extension in this folder reads them. -->
+<!-- The settings of brls 0.1.1, as the brls extension in this folder reads them. -->
 
 brls reads the `br` section. A client may supply it as `initializationOptions` at the
 handshake, in `workspace/didChangeConfiguration`, or by answering brls's `workspace/configuration` request,
@@ -22,6 +22,7 @@ belonging to another tool is named and ignored.
 | `br.autoLineNumbers.zeroPadding` | integer | `5` | The width used when the line being continued gives none. 1 to 5. |
 | `br.snippets.fileio` | boolean | `false` | Offer the FileIO snippet group, for projects that link the FileIO library. |
 | `br.lexi.lineMarkers` | boolean | `true` | Write BR's line-count markers (`!#-NN`, `!#+NN`) into the BR that *Show Lexi Expansion* produces, on each line that joins source lines or runs past a record, so that BR's line count is the Lexi source's. Turn off for output identical to Lexi's own. |
+| `br.lexi.dialect` | string | "" | The Lexi dialect file: the `lexi.json` that says what Lexi recognises and what it writes for it (see `br_tree` LEXI.md, *The dialect file*). A path, relative to the workspace root. Empty means `lexi.json` in the workspace root if there is one, and otherwise the dialect built into brls. The file is read when it is used and again when it changes, so an edit to it is the next expansion's rules. The file is read on top of the built-in dialect, so it need hold only what it changes, and the dialect also decides which files are Lexi, what Add and Strip Line Numbers write, and what the Lexi snippets insert. A file that is not a dialect is an error on the file itself, and brls's own is used until it is fixed; with the original Lexi in use the file is not read. The extension ships a copy to start from: *BR: Create lexi.json*. |
 | `br.lexi.original` | string | none: brls's own Lexi | *(`initializationOptions` only)* The folder of the original Lexi (`lexi.br`, `linenum.brs`, `lexionly.brs`, `wbconfig.sys` and `brnative.exe`). Set, *Show Lexi Expansion* and *Compile* run `lexi.br` itself, on Windows only, and the checks expand as it does. Empty means brls's own Lexi. The brls VS Code extension sets it to the `Lexi` folder of an installed, disabled `crs-dev.vslang-br` extension. Read at the handshake only. |
 | `br.run.executable` | string | `$BR_EXE`, then the kit's | The BR executable that *Compile*, *Run*, *Decompile*, *BR Runtime Info* and *Search Compiled Programs* start. Empty means `$BR_EXE`, then the kit's `dev/tools/brserver-x64-Release.exe`. A relative path is taken from the application root, the folder holding `context/`. |
 | `br.run.unattendedConfig` | string | `$BR_AI_UTIL`, then the kit's | The configuration BR runs unattended on, for every command but *Run*. Empty means `$BR_AI_UTIL`, then the kit's `dev/tools/brconfig.ai_util`. brls runs BR on a copy written beside it, with its `LOGGING` lines replaced by the job's own unattended log, so `startlog.txt` is never touched. |
