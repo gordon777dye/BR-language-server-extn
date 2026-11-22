@@ -8,9 +8,10 @@ and Lexi.
 - **Publisher:** Application Development Systems. The extension's id is
   `application-development-systems.brls`.
 - **Download:** the `.vsix` attached to the newest release on the
-  [Releases page](https://github.com/gordon777dye/BR-vscode-extn-2/releases/latest). Each release
+  [Releases page](https://github.com/gordon777dye/BR-language-server-extn/releases/latest). Each release
   is listed in [CHANGELOG.md](CHANGELOG.md).
-- **Requires:** VS Code 1.91 or later.
+- **Requires:** VS Code 1.91 or later. It also runs in Cursor: see
+  [Installing in Cursor](#installing-in-cursor).
 - **Bundled servers:** brls for 64-bit Windows and for 64-bit Linux. On any other platform, point
   [`br.server.path`](#the-server) at a brls you have built.
 
@@ -19,6 +20,7 @@ and Lexi.
 ## Contents
 
 - [Installing](#installing)
+  - [Installing in Cursor](#installing-in-cursor)
 - [Files the extension handles](#files-the-extension-handles)
 - [Diagnostics](#diagnostics)
 - [Writing code](#writing-code)
@@ -39,8 +41,8 @@ and Lexi.
 
 ## Installing
 
-1. Open the [newest release](https://github.com/gordon777dye/BR-vscode-extn-2/releases/latest)
-   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.1.vsix`).
+1. Open the [newest release](https://github.com/gordon777dye/BR-language-server-extn/releases/latest)
+   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.2.vsix`).
 2. Install it in either of these ways:
    - **From a terminal:** `code --install-extension brls-<version>.vsix`
    - **In VS Code:** open the Extensions view, then **…** (Views and More Actions) →
@@ -58,6 +60,24 @@ are kept. [CHANGELOG.md](CHANGELOG.md) says what each version changed. To be tol
 version is out, use **Watch → Custom → Releases** on the repository's GitHub page.
 
 **Removing.** Uninstall it from the Extensions view.
+
+<a id="installing-in-cursor"></a>
+### Installing in Cursor
+
+[Cursor](https://cursor.com) is built on VS Code and runs VS Code extensions, so brls installs in
+Cursor from the same `.vsix`. There is no separate Cursor version. brls isn't listed in Cursor's
+extension search, so install it from the file:
+
+1. Download the `.vsix` from the [newest release](https://github.com/gordon777dye/BR-language-server-extn/releases/latest),
+   as above.
+2. Install it in either of these ways:
+   - **From a terminal:** `cursor --install-extension brls-<version>.vsix`
+   - **In Cursor:** open the Command Palette (`Ctrl+Shift+P`), run **Extensions: Install from
+     VSIX…**, and choose the file.
+3. Reload the window when Cursor asks.
+
+Everything this README describes works the same way in Cursor: the commands, keys and settings,
+Lexi, and running BR. Updating and removing are also the same as in VS Code.
 
 ---
 
@@ -528,7 +548,7 @@ in that channel.
 | "No such library program" never appears | It's only reported when `br.closedWorkspace` is on. |
 | Lexi files suddenly full of errors after editing `lexi.json` | The dialect file was refused, and brls fell back to its built-in dialect. The error on `lexi.json` says why. |
 | Show Lexi Expansion says the original Lexi can't run | The `crs-dev.vslang-br` extension's `Lexi` folder is incomplete, or you're not on Windows. Uninstall that extension to use brls's own Lexi. |
-| Something else | Open **BR: Show Language Server Output**, and set `br.trace.server` to `verbose` to capture the exchange. Report it at [the repository's issues](https://github.com/gordon777dye/BR-vscode-extn-2/issues), with that output. |
+| Something else | Open **BR: Show Language Server Output**, and set `br.trace.server` to `verbose` to capture the exchange. Report it at [the repository's issues](https://github.com/gordon777dye/BR-language-server-extn/issues), with that output. |
 
 ---
 

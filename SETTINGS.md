@@ -1,6 +1,6 @@
 # brls settings
 
-<!-- The settings of brls 0.1.1, as the brls extension in this folder reads them. -->
+<!-- The settings of brls 0.1.2, as the brls extension in this folder reads them. -->
 
 brls reads the `br` section. A client may supply it as `initializationOptions` at the
 handshake, in `workspace/didChangeConfiguration`, or by answering brls's `workspace/configuration` request,

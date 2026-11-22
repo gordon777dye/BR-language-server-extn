@@ -1,7 +1,20 @@
 # Changelog
 
 Each release is on the repository's
-[Releases page](https://github.com/gordon777dye/BR-vscode-extn-2/releases), with its `.vsix`.
+[Releases page](https://github.com/gordon777dye/BR-language-server-extn/releases), with its `.vsix`.
+
+## 0.1.2 — 2026-11-22
+
+- **The SEARCH command (BR 5.03)** is recognised in `EXECUTE` strings: its attributes, pattern
+  (a word, a quoted string or a `/regex/`), file names, options and redirection are checked and
+  completed. `SE`, its abbreviation, is no longer reported as an error.
+- **`HELP$`** takes BR 5.03's third argument, `"BROWSE"`. With three arguments the second must be a
+  string, and a number there is reported, as BR refuses it.
+- **TYPE, COPY, MOVE and RENAME** with several file names are no longer reported as errors.
+- **Hover links** go only to what documents the word as it is used. The `DATE` function no longer
+  links to the `DATE` configuration statement, nor `POS` the function to the `POS` format code.
+- **`BTREE_VERIFY`**, which BR 5.03 removed, is no longer offered as a STATUS topic.
+- **Installing in Cursor** is described in the README.
 
 ## 0.1.1 — 2026-11-20
 
