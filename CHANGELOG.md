@@ -3,6 +3,51 @@
 Each release is on the repository's
 [Releases page](https://github.com/gordon777dye/BR-language-server-extn/releases), with its `.vsix`.
 
+## 0.1.4 — 2026-11-25
+
+- **Command options are checked as BR checks them,** in `EXECUTE` strings. Each command takes only
+  the options its handler in BR reads, and one it doesn't is reported with BR's error: `COPY a b -A`
+  and `FREE x -A` (1006, BR 5.03), `RENAME a b -R`, `MOVE a b -D`, `DIR -X`, `SEARCH x a.txt -L -C`,
+  `INDEX … RE` (7605: a keyword needs three letters), `STATUS -Q` (1000), and `SYSTEM -W` and
+  `SYSTEM +64` (4501, BR 5.03). A name after an option is reported too, since BR reads it as one. A
+  command with no options reads a dash word as a word (`AUTO -5`).
+- **Lines BR accepts are no longer reported:** `COPY`, `RENAME` and `MOVE` with one name;
+  `PROTECT f BOGUS` and `SORT a b`, whose extra words BR ignores; anything after `MKDIR`, `RMDIR`
+  and `VERIFY`. `INDEX` takes `SHRI`.
+- **`BREAK â€¦ AFTER n`** (BR 5.03) is checked in `EXECUTE` strings: `BREAK TOTAL AFTER 5`,
+  `BREAK 1200 AFTER 99 IF X>0`, `BREAK AFTER 2 IF X>100`. A system function after `BREAK`
+  (`BREAK LEN`) and `DEBUG STEP OUT` check clean too.
+- **FileIO layouts that share a prefix** are reported. Each one gets a warning on its prefix
+  that names the others, because a subscript is a layout's prefix and a field's name, so the
+  same field name in two such layouts would be one subscript for two fields. This shows in the
+  editor, where an edit to one layout updates the others that are open, and in `-workspace`.
+- **FileIO subscripts that name no field** are warned about (`unknown-subscript`). A numeric
+  variable whose name starts with a layout's prefix but names none of its fields, such as `CO_NAMX`,
+  is reported on the line you're typing. **BR: Show All Errors** reports them across the whole
+  program until you close it. It checks only the program it's given. The check isn't always on,
+  because a program being moved to FileIO can still have variables of its own with those prefixes.
+  Setting: `br.diagnostics.fileioSubscripts`.
+- **FileIO layouts are coloured** with the same kinds as BR source, so a theme colours both alike.
+  Field names and key segments are variables. The prefix is a namespace and FORM codes are types.
+  File names and date masks are strings, and what FileIO never reads is a comment. Descriptions
+  aren't coloured. Semantic colouring is now on by default for layouts and BR source.
+- **FORM codes in BR source are coloured,** as types with their sizes as numbers. This covers
+  `FORM` statements and `USING "FORM â€¦"` strings.
+- **Column 4 completion follows the field's type.** A numeric field is offered `DATE(Days)`. A
+  string field is offered `DATE(cymd)`, `DATE(ymd)`, `DATE(mdy)` and `DATE(mdcy)`.
+- **Hovering in a layout** says what the part under the cursor is: the field, the key segment, or
+  the column.
+- **More layout checks**, from Appendix A of ONBOARDING.md:
+  - `DATE(serial)` in column 4 is a warning, because it isn't a day number to FileIO;
+  - so is a date mask on a numeric field, which should hold a BR day number, `DATE(days)`;
+  - and a mask on a string field that lacks a year, a month or a day, since BR takes the missing
+    part from today's date;
+  - a key segment's `(start:end)` that runs past its field is a warning;
+  - Information notes cover a description over 80 characters, column 4 text that FileIO ignores
+    (including a subscript written there), and column 5 text that isn't a byte range.
+- **A variable given a value by `READ`, `REREAD`, `INPUT`, `LINPUT` or `RINPUT`** is now
+  highlighted as written there, as a `LET` target is. It was highlighted as read.
+
 ## 0.1.3 â€” 2026-11-24
 
 - **Debugging (beta).** BR programs can now be debugged in VS Code and in Cursor. Give

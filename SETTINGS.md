@@ -1,6 +1,6 @@
 # brls settings
 
-<!-- The settings of brls 0.1.3, as the brls extension in this folder reads them. -->
+<!-- The settings of brls 0.1.4, as the brls extension in this folder reads them. -->
 
 brls reads the `br` section. A client may supply it as `initializationOptions` at the
 handshake, in `workspace/didChangeConfiguration`, or by answering brls's `workspace/configuration` request,
@@ -44,6 +44,7 @@ Each is `br.diagnostics.<key>`, a boolean. One key can govern several rules.
 | `concatTypeMismatch` | on | `numeric-in-concat` |
 | `defLibraryComma` | on | `def-library-stray-comma` |
 | `executeStrings` | on | `execute-statement-syntax`, `execute-command-syntax`, `execute-ends-program`, `execute-free-abbreviated` |
+| `fileioSubscripts` | on | `unknown-subscript` |
 | `formats` | on | `bad-using-format`, `using-not-a-form` |
 | `libraries` | on | `not-exported`, `library-function-not-defined`, `unresolved-library` |
 | `mixedAndOr` | on | `mixed-and-or` |

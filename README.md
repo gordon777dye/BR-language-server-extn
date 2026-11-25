@@ -50,7 +50,7 @@ and Lexi.
 ## Installing
 
 1. Open the [newest release](https://github.com/gordon777dye/BR-language-server-extn/releases/latest)
-   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.3.vsix`).
+   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.4.vsix`).
 2. Install it in either of these ways:
    - **From a terminal:** `code --install-extension brls-<version>.vsix`
    - **In VS Code:** open the Extensions view, then **…** (Views and More Actions) →
@@ -635,9 +635,19 @@ or sits directly in a folder named in `br.filelay.folders` with the extension in
 `br.filelay.extension`.
 
 **In a layout:**
-- brls reports problems in it;
-- hovering on a field says what FileIO makes of it;
+- brls reports problems in it, and warns when another layout has the same prefix;
+- hovering says what the part under the cursor is to FileIO: the field, the key segment, or the
+  column;
+- it's coloured with the same kinds as BR source, so your theme colours both alike:
+  - field names and key segments are variables;
+  - the prefix is a namespace, and FORM codes are types;
+  - file names and date masks are strings;
+  - what FileIO never reads is a comment;
+  - descriptions aren't coloured;
 - the fields appear in the Outline.
+
+Semantic colouring is on by default for layouts and for BR source, so the colours show in every
+theme.
 
 **Format Document** (Shift+Alt+F) lines the columns up. `br.filelay.format.minWidths` sets the
 least width of each of the first five columns. Formatting applies only to layouts. BR source is
@@ -646,7 +656,14 @@ never reformatted.
 **In BR source:**
 - the subscript constants FileIO defines, such as `CO_NAME` for the field `NAME$` of a layout
   prefixed `CO_`, are offered as completions once the word you're typing contains a `_`;
-- hovering on one says which field it is.
+- hovering on one says which field it is;
+- a numeric variable with a layout's prefix that names none of its fields, such as `CO_NAMX`, is
+  a warning on the line you're typing. **BR: Show All Errors** checks the whole program for them,
+  and the warnings stay until you fix them or close the file. Only that program is checked.
+
+These checks aren't made over every file all the time, because a program being moved to FileIO
+can still have variables of its own that start with a layout's prefix. Turn them off with
+`br.diagnostics.fileioSubscripts`.
 
 The extension also starts when a workspace contains a `filelay` folder, so layouts are recognised
 before any BR file is opened.
@@ -663,6 +680,7 @@ before any BR file is opened.
 | BR: Run with BR | Ctrl+Shift+R |
 | BR: Search Compiled Programs (LIST) | Ctrl+Alt+F (anywhere) |
 | BR: Show Lexi Expansion | — |
+| BR: Show All Errors | — |
 | BR: Create lexi.json (Lexi dialect) in the Workspace | — |
 | BR: Toggle Compile on Save | — |
 | BR: View Compiled Program | — (Explorer context menu) |
