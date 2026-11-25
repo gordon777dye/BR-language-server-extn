@@ -3,12 +3,12 @@
 Each release is on the repository's
 [Releases page](https://github.com/gordon777dye/BR-language-server-extn/releases), with its `.vsix`.
 
-## 0.1.4 — 2026-11-25
+## 0.1.4 â€” 2026-11-25
 
 - **Command options are checked as BR checks them,** in `EXECUTE` strings. Each command takes only
   the options its handler in BR reads, and one it doesn't is reported with BR's error: `COPY a b -A`
   and `FREE x -A` (1006, BR 5.03), `RENAME a b -R`, `MOVE a b -D`, `DIR -X`, `SEARCH x a.txt -L -C`,
-  `INDEX … RE` (7605: a keyword needs three letters), `STATUS -Q` (1000), and `SYSTEM -W` and
+  `INDEX â€¦ RE` (7605: a keyword needs three letters), `STATUS -Q` (1000), and `SYSTEM -W` and
   `SYSTEM +64` (4501, BR 5.03). A name after an option is reported too, since BR reads it as one. A
   command with no options reads a dash word as a word (`AUTO -5`).
 - **Lines BR accepts are no longer reported:** `COPY`, `RENAME` and `MOVE` with one name;
