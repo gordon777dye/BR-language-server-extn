@@ -1,5 +1,5 @@
-# Business Rules! (brls) for Visual Studio Code
-
+# Business Rules! Language Server Editor Extension
+## For VScode, Cursor and other editors
 Language support for **Business Rules! (BR)** in VS Code, from **brls**, the BR language server.
 The extension is a launcher. It starts brls, binds its commands and keys, and contributes its
 settings. Everything it knows about BR is in brls: diagnostics, completion, snippets, line numbers
@@ -30,6 +30,14 @@ and Lexi.
   - [The original Lexi](#the-original-lexi)
   - [Customizing Lexi: the dialect file](#customizing-lexi)
 - [Running BR from the editor](#running-br-from-the-editor)
+- [Debugging](#debugging)
+  - [Starting a debug session](#starting-a-debug-session)
+  - [Breakpoints](#breakpoints)
+  - [Stepping and looking at the program](#stepping-and-inspecting)
+  - [The Debug Console](#the-debug-console)
+  - [Ending a session](#ending-a-debug-session)
+  - [What BR doesn't do yet](#debugging-limits)
+  - [Not yet tested](#debugging-not-yet-tested)
 - [FileIO layouts](#fileio-layouts)
 - [Commands and keys](#commands-and-keys)
 - [Settings](#settings)
@@ -42,7 +50,7 @@ and Lexi.
 ## Installing
 
 1. Open the [newest release](https://github.com/gordon777dye/BR-language-server-extn/releases/latest)
-   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.2.vsix`).
+   and download its `.vsix`, named `brls-<version>.vsix` (for example `brls-0.1.3.vsix`).
 2. Install it in either of these ways:
    - **From a terminal:** `code --install-extension brls-<version>.vsix`
    - **In VS Code:** open the Extensions view, then **…** (Views and More Actions) →
@@ -77,7 +85,9 @@ extension search, so install it from the file:
 3. Reload the window when Cursor asks.
 
 Everything this README describes works the same way in Cursor: the commands, keys and settings,
-Lexi, and running BR. Updating and removing are also the same as in VS Code.
+Lexi, and running BR. Updating and removing are also the same as in VS Code. Debugging uses the
+same extension too. [Debugging](#debugging) covers both editors, and says what hasn't yet been
+tried in Cursor.
 
 ---
 
@@ -309,11 +319,8 @@ see. Turn them off with `br.lexi.lineMarkers` for output exactly like the origin
 <a id="the-original-lexi"></a>
 ### The original Lexi
 
-brls's Lexi fixes defects in the original Lexi program (`lexi.br`). Among them:
-- comments hidden by an apostrophe inside a string;
-- block comments that never close;
-- template strings that find their closing braces past the end of the string;
-- select directives acted on inside comments.
+Brls has built-in **full** Lexi support which is driven by a modifiable json file. But if you 
+need to work with the original Lexi, this extension supports that configuration as well.
 
 **To use the original instead:** install the `crs-dev.vslang-br` extension, **disable** it, then
 install this one. Disabled, it neither checks nor colours anything, but its `Lexi` folder stays
@@ -426,6 +433,198 @@ So without the kit, set `APP_ROOT` and the three files.
 
 brls runs BR unattended on a copy of your unattended configuration, with its `LOGGING` lines
 replaced by the job's own log. Your configuration and its log are never touched.
+
+---
+
+<a id="debugging"></a>
+## Debugging
+
+The extension debugs BR programs in the editor. You can:
+- set breakpoints in the source;
+- step through the program;
+- look at the call stack and the variables;
+- watch expressions;
+- give BR commands from the Debug Console.
+
+The debugger attaches to a BR that is already running. It never starts BR itself: you tell BR to
+listen, and then attach the editor to it.
+
+VS Code and Cursor debug in the same way, with the same extension. Where the two editors differ,
+both are given below.
+
+**What you need:**
+- **Version 0.1.3 or later of the extension.** Versions 0.1.2 and earlier have no debugger.
+- **A BR 5.03 build that includes the structured debugger protocol.** The debugger refuses to
+  attach to an older BR.
+- **Windows.** BR and the editor must run on the same computer, under the same Windows account. BR
+  listens only on the local machine, and the debugger reads the token BR writes for that account.
+
+<a id="starting-a-debug-session"></a>
+### Starting a debug session
+
+1. **In BR, give `DEBUG LISTEN`.** BR listens on port 9555. To use another port, give it, as in
+   `DEBUG LISTEN 9600`.
+2. **In the editor, attach.**
+
+   | Step | VS Code | Cursor |
+   |---|---|---|
+   | Open the Run and Debug view | Command Palette (`Ctrl+Shift+P`) → **View: Show Run and Debug** | Command Palette (`Ctrl+Shift+P`) → **View: Show Run and Debug** |
+   | The first time, add the configuration | **create a launch.json file** → **BR (brls)**. This writes `.vscode/launch.json` with **Attach to BR**. | **create a launch.json file** → **BR (brls)**. This writes `.vscode/launch.json` with **Attach to BR**. |
+   | Attach | Choose **Attach to BR** and press **Start Debugging** (F5) | Choose **Attach to BR** and press **Start Debugging** (F5) |
+
+   With no `launch.json`, F5 in a BR file attaches on port 9555.
+3. **Run the program.** In the Debug Console, type `BR RUN`, or another BR command that starts it,
+   such as `BR RUN MYPROG`.
+
+**Attaching to a program already halted.** Say a program has stopped at a `PAUSE` or on an
+error. Give `DEBUG LISTEN` at that prompt, then attach. The editor opens where the program stopped.
+
+**The configuration.** `launch.json` is the same in both editors:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "br",
+      "request": "attach",
+      "name": "Attach to BR",
+      "port": 9555,
+      "root": "${workspaceFolder}"
+    }
+  ]
+}
+```
+
+| Attribute | Default | What it does |
+|---|---|---|
+| `port` | `9555` | The port given to `DEBUG LISTEN` |
+| `wait` | `10` | Seconds to keep trying when BR isn't listening yet. This lets you start the editor first. |
+| `root` | the workspace folder | The folder whose `lexi.json` is the Lexi dialect, used to map Lexi source to BR's lines |
+
+`attach` is the only request. A `launch` configuration is refused, because the debugger never
+starts BR.
+
+<a id="breakpoints"></a>
+### Breakpoints
+
+- **Line breakpoints.** Click in the gutter, or press F9, in any BR source: `.brs`, `.br.brs`,
+  `.wbs`, numbered or unnumbered, plain or Lexi.
+  - BR places a breakpoint by its own line number. For Lexi source, that is the line in the
+    expanded program, so the breakpoint is placed after Lexi processing.
+  - A breakpoint on a line with no statement, such as a comment, moves to the next statement.
+  - A breakpoint is verified once BR has the program. A library's breakpoints are verified when
+    the library loads, and a `CHAIN`ed program's when it starts.
+- **Conditions, hit counts and logpoints.** Use the breakpoint's context menu, **Edit
+  Breakpoint…**. BR evaluates each of them.
+  - A **condition** is a BR expression.
+  - A **hit count** is `N`, `=N`, `>=N`, `>N` or `%N`. BR refuses any other form, and the editor
+    shows why.
+  - A **logpoint** message names variables in braces, such as `Count is {COUNT}`. When the line is
+    reached, the message goes to the Debug Console and the program goes on.
+- **Breakpoints by name.** Add these with **+** in the Breakpoints section of the Run and Debug
+  view (**Add Function Breakpoint**). A name is read the way BR's `BREAK` reads one:
+  - **A name with a colon,** such as `TOTALS:`, is a label.
+  - **A name without a colon** is looked for in this order:
+    1. a function the program defines (`FNTOTAL`): stop when the function is called;
+    2. a variable the program uses (`COUNT`, or `MAT A` for an array): stop when its value changes;
+    3. a label (`TOTALS`).
+
+    So a label that has the same name as a function or a variable needs its colon.
+  - **A function in a library that hasn't loaded yet** can still be given. Name it, as in
+    `FNLIBTOTAL`, and BR stops there once the library loads.
+  - **Any other name** stays unverified.
+- **Breaking when a variable changes.** In the Variables section, right-click a variable and choose
+  **Break on Value Change**. Array elements can't be watched this way.
+- **Errors.** The Breakpoints section has two error filters:
+  - **Uncaught errors,** on by default: stop on an error that nothing traps. BR always stops on
+    these.
+  - **All errors:** also stop on an error that an `ON ERROR` or an exit clause takes. The program
+    stops at the first line of the handler, and the stop names the error and the line where it
+    happened.
+
+<a id="stepping-and-inspecting"></a>
+### Stepping and looking at the program
+
+| Action | Key (both editors' default) |
+|---|---|
+| Continue | F5 |
+| Step Over | F10 |
+| Step Into (into a `GOSUB`, a `DEF FN` or a library function) | F11 |
+| Step Out | Shift+F11 |
+| Pause | F6 |
+| Disconnect | Shift+F5 |
+
+- **Call Stack.** One frame for each level of the program: the main program, a `GOSUB`, a user
+  function, a library function, or an `EXECUTE`. Each frame opens its own source file and line,
+  including a library's and a `CHAIN`ed program's.
+- **The source of a compiled program.** When BR is running `x.br`, the debugger shows `x.br.brs`
+  or `x.brs` beside it, whichever was saved more recently.
+  - If the compiled program is older than that source, the Debug Console warns you. The program
+    may not match what you see, so compile it again.
+- **Variables.** Select a frame in the Call Stack to see that frame's variables.
+  - A string shows its dimensioned length as its type (`string*30`).
+  - An array opens to show its elements.
+  - To change a value, use **Set Value**. A value you type for a string variable is quoted for you.
+- **Watch and hover.** A watch expression, or hovering over a variable, is evaluated by BR in the
+  selected frame.
+
+<a id="the-debug-console"></a>
+### The Debug Console
+
+- **An expression** is evaluated in the selected frame, as in `NAME$` or `A(2)*3`.
+- **A line beginning `BR` and a space** is a BR command. The rest of the line goes to BR, as
+  in `BR STATUS STACKS` or `BR RUN`.
+  - The command runs in the program of the frame selected in the Call Stack.
+  - Only `BR` as a word of its own counts. A variable such as `BRATE` is still evaluated.
+  - What the command prints appears in BR's own window, not in the editor.
+- **Messages from BR** also appear here:
+  - output written to a `DEBUG:n` file;
+  - BR's log;
+  - messages BR has for you;
+  - each program's start and end.
+
+<a id="ending-a-debug-session"></a>
+### Ending a session
+
+- **When the program ends,** the editor stays attached to BR, and the breakpoints stay set. Type
+  `BR RUN` to run it again.
+- **Disconnecting** removes the debugger's breakpoints and lets the program carry on.
+  - The debugger also supports suspending the program on disconnect. Where the editor offers
+    that, the program stays halted.
+- **If BR closes the connection,** or BR exits, the session ends.
+
+<a id="debugging-limits"></a>
+### What BR doesn't do yet
+
+- **The program's screen isn't sent.** Anything the program or a console command prints appears
+  only in BR's own window.
+- **One `DEBUG LISTEN` at a time for each Windows account.** While one BR is waiting for a debugger,
+  another session's `DEBUG LISTEN` fails with error 4176. The token is released when the debugger
+  attaches.
+- **The debugger uses BR's default authentication,** `DEBUG AUTH COOKIE`. BR writes a new token for
+  each `DEBUG LISTEN`, in `%LOCALAPPDATA%\ADS\brdebug.token`, and the debugger reads it there.
+- **A logpoint's `{…}`** can name only a variable, or an array element with constant subscripts.
+  Anything else shows as `{expression?}`.
+- **A hit count with a condition** counts every time the line is reached, not only the times the
+  condition is true.
+- **A logpoint can't have a condition.** BR refuses it, and the breakpoint stays unverified.
+- **A string value is cut** at 65,536 characters.
+- **Watching an expression** that is more than a variable leaves two variables, `BRDBG_NUM` and
+  `BRDBG_STR$`, in the program. The Variables section hides them.
+- **Windows only.** BR's debugger hasn't been built for Linux or Mac.
+
+<a id="debugging-not-yet-tested"></a>
+### Not yet tested
+
+Debugging has been tested in VS Code 1.147, unattended, against BR 5.03. It hasn't been run in
+Cursor yet. These parts are built but haven't been run against BR in either editor:
+- a breakpoint's condition;
+- **Break on Value Change** from the Variables section (a variable breakpoint by name is tested);
+- opening a large array a page at a time;
+- the warning for a compiled program older than its source;
+- F5 with no `launch.json`;
+- a breakpoint on a function in a library that hasn't loaded yet.
 
 ---
 
@@ -548,6 +747,13 @@ in that channel.
 | "No such library program" never appears | It's only reported when `br.closedWorkspace` is on. |
 | Lexi files suddenly full of errors after editing `lexi.json` | The dialect file was refused, and brls fell back to its built-in dialect. The error on `lexi.json` says why. |
 | Show Lexi Expansion says the original Lexi can't run | The `crs-dev.vslang-br` extension's `Lexi` folder is incomplete, or you're not on Windows. Uninstall that extension to use brls's own Lexi. |
+| Attaching says "BR is not listening on port …" | BR hasn't been given `DEBUG LISTEN`, or was given another port. Give `DEBUG LISTEN`, or set `port` in `launch.json` to match. |
+| Attaching says "no debug token at …" | BR hasn't been given `DEBUG LISTEN` under your Windows account, or another debugger has already attached and used the token. Give `DEBUG LISTEN` again. |
+| Attaching says "BR refused the attach: the debug token did not match" | The token is stale. Give `DEBUG LISTEN` again, then attach. |
+| `DEBUG LISTEN` fails with error 4176 | Another BR session under your account is already waiting for a debugger. Attach to that one, or close it. |
+| "brls debugs by attaching" | The configuration's `request` is `launch`. Use `attach` (see [Starting a debug session](#starting-a-debug-session)). |
+| A breakpoint stays grey (unverified) | BR hasn't loaded that program yet, so it's verified when the program starts. A breakpoint by name stays grey when no function, variable or label has that name. |
+| The program stops on lines that don't match the source | The compiled program is older than its source, and the Debug Console says so. Compile it again. |
 | Something else | Open **BR: Show Language Server Output**, and set `br.trace.server` to `verbose` to capture the exchange. Report it at [the repository's issues](https://github.com/gordon777dye/BR-language-server-extn/issues), with that output. |
 
 ---
